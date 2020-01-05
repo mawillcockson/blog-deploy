@@ -1,0 +1,7 @@
+---
+- name: Place test file
+  copy:
+    content: "<html><head><title></title></head><body>It worked</body></html>"
+    dest: "{{ web_root|default('/var/www') }}/index.html"
+    owner: "{{ web_user }}"
+...

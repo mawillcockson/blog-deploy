@@ -1,0 +1,21 @@
+---
+- name: Setup server
+  hosts: all
+  remote_user: '{{ provision_username }}'
+  become: yes
+  vars_files:
+    - vars.yaml
+      #vars_prompt:
+
+      #  - name: bitbucket_oauth_key
+      #    prompt: "BitBucket OAuth Consumer Key"
+      #    private: yes
+
+      #  - name: bitbucket_oauth_secret
+      #    prompt: "BitBucket OAuth Consumer Secret"
+      #    private: yes
+  gather_facts: no # Don't gather facts until we know which user we can log in as
+  roles:
+    - { role: setup,    tags: ['setup']                                         }
+    - { role: caddy,    tags: ['caddy']                                         }
+...

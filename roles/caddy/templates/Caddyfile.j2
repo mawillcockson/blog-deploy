@@ -1,0 +1,20 @@
+(logs) {
+    log stdout
+    errors stderr
+}
+
+(tls) {
+    tls {{ email }}
+}
+
+:80 {
+    root {{ default_web_root|default('/dev/null') }}
+    tls off
+    import logs
+}
+
+{{ fqdn }}:80, {{ fqdn }}:443 {
+    root {{ web_root|default('/var/www') }}
+    import tls
+    import logs
+}

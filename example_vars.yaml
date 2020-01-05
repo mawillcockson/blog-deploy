@@ -1,0 +1,16 @@
+---
+# Copy this file to vars.yaml or vars.yml, and change the values to meet your needs
+
+# Change the below username to the username of the administrative account that has sudo privileges.
+# It's assumed that Ansible can login as this user by issuing: ssh admin_username@server
+admin_username: admin
+
+# Change the following to the username of the user that will be used to administer and run caddy
+caddy_username: caddy
+
+# The following must be changed to your email
+email: myemail@example.com
+
+# Change the following if you want files to be served by Caddy to be located someplace other than /var/www
+#web_root=/var/www
+...

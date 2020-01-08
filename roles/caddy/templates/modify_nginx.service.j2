@@ -1,0 +1,16 @@
+[Unit]
+Description=Modify NGiNX local.conf to reverse proxy to caddy
+After=nginx.service
+Wants=nginx.service caddy.service
+
+[Service]
+Type=oneshot
+ExecStart=ansible-playbook -i 127.0.0.1, /etc/blog-deploy/modify_nginx.yaml
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/etc/nginx/conf.d
+ReadWriteDirectories=/etc/nginx/conf.d
+
+[Install]
+# This unit file has counterpart .path and .timer files
+# that activate it.

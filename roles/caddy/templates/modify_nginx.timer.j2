@@ -1,0 +1,7 @@
+[Unit]
+Description=Make sure NGiNX configuration is modified after boot
+After=modify_nginx.path
+Wants=modify_nginx.path
+
+[Timer]
+OnBootSec=3min

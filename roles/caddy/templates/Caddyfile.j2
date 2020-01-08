@@ -13,7 +13,7 @@
 #    import logs
 #}
 
-127.0.0.1:8080 {
+127.0.0.1:{{ caddy_port }} {
     root {{ caddy_home }}
     templates / .txt
     ext .txt .html

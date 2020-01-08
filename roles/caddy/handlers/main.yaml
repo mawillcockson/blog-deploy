@@ -8,4 +8,9 @@
   service:
     name: caddy
     state: reloaded
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
 ...

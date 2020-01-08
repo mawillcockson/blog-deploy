@@ -7,14 +7,16 @@
     tls {{ email }}
 }
 
-:80 {
-    root {{ default_web_root|default('/dev/null') }}
-    tls off
-    import logs
-}
+#:80 {
+#    root {{ default_web_root|default('/dev/null') }}
+#    tls off
+#    import logs
+#}
 
-{{ fqdn }}:80, {{ fqdn }}:443 {
-    root {{ web_root|default('/var/www') }}
-    import tls
+127.0.0.1:8080 {
+    root {{ caddy_home }}
+    templates / .txt
+    ext .txt .html
+    tls off
     import logs
 }

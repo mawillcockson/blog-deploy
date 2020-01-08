@@ -1,7 +1,15 @@
 ---
-- name: Place test file
+- name: Place backup files
   copy:
-    content: "<html><head><title></title></head><body>It worked</body></html>"
-    dest: "{{ web_root|default('/var/www') }}/index.html"
+    src: "{{ item }}"
+    dest: "{{ fallback_web_root|default('/var/www') }}/{{ item }}"
     owner: "{{ web_user }}"
+  loop:
+    - index.html
+
+- name: Place example file
+  copy:
+    src: ip.txt
+    dest: "{{ caddy_home|default('/var/www') }}/ip.txt"
+    owner: "{{ caddy_user }}"
 ...

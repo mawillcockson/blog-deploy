@@ -6,14 +6,15 @@
 
 - name: Set variables
   set_fact:
-    caddy_tarball_path: "{{ web_root|default('/var/www')}}/caddy.tar.gz"
+    caddy_tarball_path: "{{ caddy_home|default('/home/caddy') }}/caddy.tar.gz"
+    caddy_home: "{{ caddy_home|default('/home/caddy') }}"
 
 - name: Create Caddy user
   user:
     name: "{{ caddy_user }}"
     system: yes
     createhome: yes
-    home: "{{ web_root|default('/var/www') }}"
+    home: "{{ caddy_home }}"
 
 - name: Retrieve latest Caddy release
   uri:
@@ -82,10 +83,10 @@
       - README.txt
       - CHANGES.txt
       - LICENSES.txt
-    creates: "{{ web_root|default('/var/www') }}/caddy"
-    dest: "{{ web_root|default('/var/www') }}/"
-    owner: "{{ web_user }}"
-    group: "{{ web_user }}"
+    creates: "{{ caddy_home }}/caddy"
+    dest: "{{ caddy_home }}/"
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_user }}"
     mode: u=rx,g=rx,o=rx
   when: caddy_tarball_stat.stat.exists
 
@@ -101,7 +102,7 @@
 
 - name: Stat Caddy binary
   stat:
-    path: "{{ web_root|default('/var/www') }}/caddy"
+    path: "{{ caddy_home }}/caddy"
   register: caddy_bin_stat
 
 - name: Ensure Caddy is stopped before copying new binary
@@ -114,7 +115,7 @@
 
 - name: Copy new binary into place
   copy:
-    src: "{{ web_root|default('/var/www') }}/caddy"
+    src: "{{ caddy_home }}/caddy"
     dest: /usr/local/bin/caddy
     remote_src: yes
     owner: root
@@ -124,7 +125,7 @@
 
 - name: Remove duplicate binary
   file:
-    path: "{{ web_root|default('/var/www') }}/caddy"
+    path: "{{ caddy_home }}/caddy"
     state: absent
 
 - name: Create Caddy directories
@@ -142,20 +143,6 @@
     - - /etc/caddy/conf.d
       - u=rwx,g=rwx,o=rx
 
-- name: Copy over website files
-  copy:
-    src: "{{ item.0 }}"
-    dest: "{{ web_root|default('/var/www') }}{{ item.1 }}"
-    force: no
-    owner: "{{ caddy_user }}"
-    group: "{{ caddy_user }}"
-    mode: u=r,g=r,o=r
-  loop:
-    - - ip.txt
-      - ""
-    - - blank.html
-      - /blank/index.html
-
 - name: Create Caddyfile
   template:
     dest: /etc/caddy/Caddyfile
@@ -169,7 +156,7 @@
   get_url:
     url: "https://raw.githubusercontent.com/caddyserver/caddy/master/dist/init/linux-systemd/caddy.service"
     backup: yes
-    dest: "{{ web_root|default('/var/www') }}/caddy.service"
+    dest: "{{ caddy_home }}/caddy.service"
     owner: "{{ caddy_user }}"
     group: "{{ caddy_user }}"
     mode: u=r,g=r,o=r
@@ -180,9 +167,14 @@
     that: caddy_service_file.checksum_src == "bb7f1043b7d29dec31dd71878c1333989a350fd7"
     msg: "Update this role's systemd caddy.service file: diff /etc/systemd/system/caddy.service /var/www/caddy.service"
 
+- name: Remove downloaded caddy.service
+  file:
+    path: "{{ caddy_home }}/caddy.service"
+    state: absent
+
 - name: Copy caddy.service into place
-  copy:
-    src: caddy.service
+  template:
+    src: caddy.service.j2
     dest: /etc/systemd/system/caddy.service
     force: no
     owner: root
@@ -202,18 +194,24 @@
 #    capability: cap_net_bind_service+ep
 #    state: present
 
+- name: Modify NGiNX configuration
+  replace:
+    backup: yes
+    replace: |-
+      \g<a>
+      location / {
+        proxy_pass http://127.0.0.1:8080/;
+      }
+      \g<b>
+    path: /etc/nginx/conf.d/local.conf
+    regexp: "(?P<a>deny all;\n\\s+})(?P<b>\n}\n## autoconfig.matthew.willcockson.family)"
+    # NOTE: Really want validation as opposed to accidentally clobbering NGiNX
+    #validate: /usr/sbin/nginx -t
+  notify: restart nginx
+
 - name: Enable Caddy service
   service:
     name: caddy
     enabled: yes
   notify: restart caddy
-
-- name: "Give {{ web_user }} access to {{ web_root|default('/var/www') }}"
-  acl:
-    path: "{{ web_root|default('/var/www') }}"
-    entity: "{{ web_user }}"
-    etype: user
-    permissions: rwX
-    recursive: yes
-    state: present
 ...

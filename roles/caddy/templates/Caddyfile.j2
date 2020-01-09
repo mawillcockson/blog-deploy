@@ -29,6 +29,12 @@
 #    import common
 #}
 
+:{{ webhook_port }} {
+    tls off
+    import blog_git
+    import common
+}
+
 127.0.0.1:{{ caddy_port }} {
     root {{ blog_dir }}/{{ blog_public_folder }}
     #status 404 .*\.git.*
@@ -47,5 +53,5 @@
     browse
     tls off
     import common
-    import blog_git
+    #import blog_git
 }

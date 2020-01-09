@@ -158,6 +158,13 @@
 - name: Setup bitbucket access
   include_tasks: bitbucket_access.yaml
 
+- name: Ensure port {{ webhook_port }} is open
+  ufw:
+    comment: blog webhook
+    to_port: "{{ webhook_port }}"
+    proto: tcp
+    rule: allow
+
 - name: Create Caddyfile
   template:
     dest: /etc/caddy/Caddyfile

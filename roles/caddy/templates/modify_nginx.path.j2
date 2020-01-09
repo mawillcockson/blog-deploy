@@ -1,10 +1,11 @@
 [Unit]
 Description=Re-modify changed NGiNX configuration
 After=caddy.service nginx.service
-Wants=nginx.service
-BindsTo=caddy.service
 ; We only want this to run if caddy.service is also running
 ; From systemd.unit(5)
+;BindsTo=caddy.service
+; But it's okay if it runs without caddy, and that way it's likely to be running if caddy goes down, is serviced, and comes back up
+Wants=nginx.service caddy.service
 
 [Path]
 PathChanged=/etc/nginx/conf.d/local.conf

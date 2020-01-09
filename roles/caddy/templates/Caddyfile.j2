@@ -1,36 +1,51 @@
-(logs) {
+(common) {
     log stdout
     errors stderr
+# Arbitrary limit: https://caddyserver.com/v1/docs/limits
+    limits 1mb
 }
 
 (tls) {
     tls {{ email }}
 }
 
+(blog_git) {
+    git {
+        repo {{ blog_url }}
+        path {{ blog_dir }}
+        branch master
+        key {{ bitbucket_access_key.filename }}
+        interval -1
+        clone_args --depth=1 --single-branch
+        pull_args -s recursive -X theirs
+        hook {{ webhook_path }}
+        hook_type bitbucket
+    }
+}
+
 #:80 {
 #    root {{ default_web_root|default('/dev/null') }}
 #    tls off
-#    import logs
+#    import common
 #}
 
 127.0.0.1:{{ caddy_port }} {
-    root {{ caddy_home }}
-    templates / .txt
-    ext .txt .html
-    tls off
-    import logs
-    import blog_git
-}
-
-(blog_git) {
-    git {
-        repo {{ blog_repo }}
-        path ./blog_repo
-        branch master
-        key {{ bitbucket_access_key }}
-        interval -1
-        clone_args --depth=1 --single-branch
-        pull_args --all -s recursive -X theirs
-        hook {{ webhook_path }}
+    root {{ blog_dir }}/{{ blog_public_folder }}
+    #status 404 .*\.git.*
+    #status 404 /{{ blog_private_folder }}
+    # redir matches an exact path
+    redir /blog /blog/
+    # A rewrite block can have an optional base path,
+    # which appears to be stripped from the uri against
+    # which regexp matches.
+    rewrite /blog/ {
+        regexp (.*)
+        to /{1}
     }
+    markdown /
+    ext .html .htm .md
+    browse
+    tls off
+    import common
+    import blog_git
 }

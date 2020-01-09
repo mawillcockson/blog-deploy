@@ -16,6 +16,14 @@
     createhome: yes
     home: "{{ caddy_home }}"
 
+- name: Make sure {{ caddy_home }} exists
+  file:
+    path: "{{ caddy_home }}"
+    state: directory
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_user }}"
+    mode: u=rwx,g=rx,o=
+
 - name: Retrieve latest Caddy release
   uri:
     url: "https://api.github.com/repos/caddyserver/caddy/releases/latest"
@@ -60,7 +68,7 @@
 - name: Get Caddy
   get_url:
     # Use the caddyserver.com version, since the GitHub version lists its version as "unknown"
-    url: "https://caddyserver.com/download/linux/amd64?license=personal&telemetry=off"
+    url: "https://caddyserver.com/download/linux/amd64?plugins=http.git&license=personal&telemetry=on"
     dest: "{{ caddy_tarball_path }}"
     force: yes
     timeout: 300
@@ -137,11 +145,18 @@
     mode: "{{ item.1 }}"
   loop:
     - - /etc/ssl/caddy
-      - u=rwx,g=rx,o-rwx
+      - u=rwx,g=rx,o=
     - - /etc/caddy
       - u=rwx,g=rwx,o=rx
     - - /etc/caddy/conf.d
       - u=rwx,g=rwx,o=rx
+    - - "{{ caddy_home }}"
+      - u=rwx,g=rx,o=
+    - - "{{ blog_dir }}"
+      - u=rwx,g=rx,o=
+
+- name: Setup bitbucket access
+  include_tasks: bitbucket_access.yaml
 
 - name: Create Caddyfile
   template:
@@ -197,6 +212,7 @@
   notify:
     - reload caddy
     - restart nginx
+    - reload systemd
 
 - name: Verify systemd is okay with those files
   command: "systemd-analyze verify {{ item }}"
@@ -251,6 +267,7 @@
     enabled: yes
   loop:
     - caddy
+      # Must come after caddy, as it has After= set
     - modify_nginx.path
     - modify_nginx.timer
 ...

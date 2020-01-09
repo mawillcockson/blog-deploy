@@ -1,0 +1,37 @@
+---
+- name: Create SSH key
+  openssh_keypair:
+    force: no
+    group: "{{ caddy_user }}"
+    owner: "{{ caddy_user }}"
+    mode: u=r,g=,o=
+    path: /etc/caddy/bitbucket_access_key
+  register: bitbucket_access_key
+
+#- name: Ensure ./ssh directory exists
+#  file:
+#    path: "{{ caddy_home }}/.ssh"
+#    state: directory
+#    owner: "{{ caddy_user }}"
+#    group: "{{ caddy_user }}"
+#    mode: u=rwx,g=rwx,o=
+#
+#- name: Copy .ssh/config into place
+#  template:
+#    src: ssh_config.j2
+#    dest: "{{ caddy_home }}/.ssh/config"
+#    owner: "{{ caddy_user }}"
+#    group: "{{ caddy_user }}"
+#    mode: u=r,g=,o=
+#    validate: /usr/bin/ssh -G -F %s {{ bitbucket_host }}
+
+- name: Upload SSH key as bitbucket access key
+  bitbucket_access_key:
+    client_id: "{{ bitbucket_oauth_key }}"
+    client_secret: "{{ bitbucket_oauth_secret }}"
+    key: "{{ bitbucket_access_key.public_key }}"
+    label: blog
+    repository: "{{ bitbucket_blog_repo }}"
+    state: present
+    username: "{{ bitbucket_blog_user }}"
+...

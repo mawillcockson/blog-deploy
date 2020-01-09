@@ -1,0 +1,6 @@
+Host {{ bitbucket_host }}
+    HostName bitbucket.org
+    User git
+    IdentityFile {{ bitbucket_access_key.filename }}
+# From https://stackoverflow.com/a/11251797
+    IdentitiesOnly yes

@@ -18,4 +18,8 @@
   service:
     name: modify_nginx.service
     state: started
+
+- name: reload systemd
+  systemd:
+    daemon-reload: yes
 ...

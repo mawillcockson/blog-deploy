@@ -13,4 +13,9 @@
   service:
     name: nginx
     state: restarted
+
+- name: run modify_nginx.service
+  service:
+    name: modify_nginx.service
+    state: started
 ...

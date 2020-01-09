@@ -19,4 +19,18 @@
     ext .txt .html
     tls off
     import logs
+    import blog_git
+}
+
+(blog_git) {
+    git {
+        repo {{ blog_repo }}
+        path ./blog_repo
+        branch master
+        key {{ bitbucket_access_key }}
+        interval -1
+        clone_args --depth=1 --single-branch
+        pull_args --all -s recursive -X theirs
+        hook {{ webhook_path }}
+    }
 }

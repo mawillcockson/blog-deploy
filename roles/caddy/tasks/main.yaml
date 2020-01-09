@@ -192,6 +192,8 @@
       - /etc/systemd/system/modify_nginx.service
     - - modify_nginx.path.j2
       - /etc/systemd/system/modify_nginx.path
+    - - modify_nginx.timer.j2
+      - /etc/systemd/system/modify_nginx.timer
   notify:
     - reload caddy
     - restart nginx
@@ -202,27 +204,45 @@
     - /etc/systemd/system/caddy.service
     - /etc/systemd/system/modify_nginx.service
     - /etc/systemd/system/modify_nginx.path
+    - /etc/systemd/system/modify_nginx.timer
   changed_when: false
 
-- name: Ensure /etc/blog-deploy exists
+- name: Ensure directories for modify_nginx.yaml exist
   file:
-    path: /etc/blog-deploy
+    path: "{{ item }}"
     state: directory
     owner: root
     group: root
-    mode: u=r,g=r,o=r
+    mode: u=rwx,g=rx,o=rx
+  loop:
+    - /etc/blog-deploy
+    - /etc/ansible
 
-- name: Copy ansible playbook for modify_nginx.service.j2 into place
+- name: Copy ansible.cfg for modify_nginx.yaml into place
   template:
-    src: modify_nginx.yaml
-    dest: /etc/blog-deploy/modify_nginx.yaml
-    #force: no
-    variable_start_string: "{{{"
-    variable_end_string: "}}}"
-    validate: ansible --check -i 127.0.0.1, %s
+    src: ansible.cfg.j2
+    dest: /etc/ansible/ansible.cfg
+    # Ansible templates files out to a temporary file on the remote machine to validate before
+    # moving the temporary file into place
+    # ansible-config requires the files it's passed to have one of a set of valid extensions
+    #validate: /usr/bin/ansible-config view -c %s
     owner: root
     group: root
     mode: u=r,g=r,o=r
+  notify: run modify_nginx.service
+
+- name: Copy ansible playbook for modify_nginx.service.j2 into place
+  template:
+    src: modify_nginx.yaml.j2
+    dest: /etc/blog-deploy/modify_nginx.yaml
+    #force: no
+    variable_start_string: "<<"
+    variable_end_string: ">>"
+    validate: /usr/bin/ansible-playbook --check -i 127.0.0.1, %s
+    owner: root
+    group: root
+    mode: u=r,g=r,o=r
+  notify: run modify_nginx.service
 
 - name: Enable systemd units
   service:

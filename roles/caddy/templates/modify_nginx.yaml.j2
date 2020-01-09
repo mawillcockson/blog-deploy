@@ -5,7 +5,7 @@
   connection: local
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    caddy_port: "{{{ caddy_port }}}"
+    caddy_port: "<< caddy_port >>"
   handlers:
     - name: restart nginx
       service:
@@ -22,7 +22,7 @@
           }
           \g<before>
         path: /etc/nginx/conf.d/local.conf
-        regexp: "(?P<after>deny all;\n\\s+})(?P<before>\n}\n## autoconfig.matthew.willcockson.family)"
+        regexp: "(?P<after>deny all;\n\\s+}[\\s\n]*)(?P<before>}\n## autoconfig.matthew.willcockson.family)"
         # NOTE: Really want validation as opposed to accidentally clobbering NGiNX
         #validate: /usr/sbin/nginx -t
       notify: restart nginx

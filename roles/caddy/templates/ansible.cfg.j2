@@ -1,0 +1,11 @@
+[defaults]
+inventory = 127.0.0.1,
+local_tmp = /tmp
+remote_tmp = /tmp
+#allow_world_readable_tmpfiles = True
+stdout_callback = debug
+stderr_callback = debug
+interpreter_python = /usr/bin/python3
+
+[privilege_escalation]
+become = False

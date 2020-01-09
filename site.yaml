@@ -17,5 +17,5 @@
   gather_facts: no # Don't gather facts until we know which user we can log in as
   roles:
     - { role: caddy,   tags: ['caddy']   }
-    - { role: content, tags: ['content'] }
+    #- { role: content, tags: ['content'] }
 ...

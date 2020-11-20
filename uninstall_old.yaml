@@ -1,0 +1,41 @@
+---
+- name: Teardown
+  hosts: all
+  remote_user: '{{ admin_username }}'
+  become: yes
+  vars_files:
+    - vars.yaml
+  gather_facts: no # Don't gather facts until we know which user we can log in as
+  tasks:
+    - name: Ensure all Caddy-related services are stopped
+      loop:
+        - caddy
+          # Must come after caddy, as it has After= set
+        - modify_nginx.path
+        - modify_nginx.timer
+
+    - name: Remove caddy binary
+
+    - name: Remove Caddy user
+
+    - name: Remove Caddy directories
+      loop: 
+        - /etc/ssl/caddy
+        - /etc/caddy
+        - /etc/caddy/conf.d
+        - "{{ caddy_home }}"
+        - "{{ blog_dir }}"
+        - /etc/blog-deploy
+        - /etc/ansible
+
+    - name: Remove systemd files
+      loop:
+        - /etc/systemd/system/caddy.service
+        - /etc/systemd/system/modify_nginx.service
+        - /etc/systemd/system/modify_nginx.path
+        - /etc/systemd/system/modify_nginx.timer
+
+    - name: Uninstall ansible
+
+    - name: Remove open port
+...
